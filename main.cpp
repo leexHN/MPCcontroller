@@ -10,8 +10,8 @@ int main()
 	
 	MPCSlover slover(&logger);
 	size_t np = 10, nc = 2;
-	Eigen::MatrixXd lb(3, 1);
-	lb << 1, 2,3;
+	Eigen::MatrixXd lb(1, 1);
+	lb << 1;
 	slover.Init(np, nc, 0.1, lb, lb, lb, lb);
 	Eigen::MatrixXd a(2, 2),b(2,1),c(1,2),x0(2,1); 
 	a << 0, 1,
