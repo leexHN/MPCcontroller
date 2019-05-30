@@ -5,7 +5,7 @@
 
 struct ControlConf
 {
-	Eigen::MatrixXd matrix_a, matrix_b, matrix_c, ref, q, r, x0;
+	Eigen::MatrixXd matrix_a, matrix_b, matrix_c, ref, q, r, x0, u0;
 	double rho=0; //ËÉ³ÚÒò×Ó
 };
 
@@ -19,6 +19,8 @@ public:
 	void Init(size_t np,size_t nc, double ts, Eigen::MatrixXd lb, Eigen::MatrixXd ub, Eigen::MatrixXd s_lb, Eigen::MatrixXd s_ub);
 
 	bool LoadControlConf(ControlConf config);
+
+	Eigen::MatrixXd ComputeControlCommand();
 
 protected:
 	
@@ -41,6 +43,14 @@ protected:
 	Eigen::MatrixXd matrix_ref_;
 
 	Eigen::MatrixXd matrix_h_, matrix_f_;
+
+	Eigen::MatrixXd matrix_m1_, matrix_m2_;
+
+	Eigen::MatrixXd matrix_d1_, matrix_d2_;
+
+	void GetBoundaryConditions();
+
+	void InitControlBoundaryConditions();
 
 	double ts_;
 };

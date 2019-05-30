@@ -1,11 +1,13 @@
 #include "mpc_controller.h"
+#include"qp_solver.h"
+#include <Eigen/Sparse>
 #include <vector>
-
 
 #define name2str(name) (#name)
 
 using Matrix = Eigen::MatrixXd;
 
+Matrix kroneckerProduct(const Matrix m1, const Matrix m2);
 
 MPCSlover::MPCSlover(text_logger * logger)
 {
@@ -36,6 +38,7 @@ void MPCSlover::Init(size_t np, size_t nc,double ts, Eigen::MatrixXd lb, Eigen::
 		matrix_s_lb_.block(i*nu_, 0, nu_, 1) = s_lb;
 		matrix_s_ub_.block(i*nu_, 0, nu_, 1) = s_ub;
 	}
+	InitControlBoundaryConditions();
 }
 
 bool MPCSlover::LoadControlConf(ControlConf config)
@@ -50,7 +53,6 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 	matrix_ref_ = static_cast<Matrix>(config.ref);
 
 	ns_ = config.matrix_a.rows();
-	nu_ = config.matrix_b.cols();
 	ny_ = config.matrix_c.rows();
 	
 	// ÀëÉ¢»¯×´Ì¬·½³Ì
@@ -122,6 +124,53 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 	*(p_text_logger_) << name2str(matrix_r_) << "=" << matrix_r_ << endl;
 	*(p_text_logger_) << name2str(matrix_h_) << "=" << matrix_h_ << endl;
 	*(p_text_logger_) << name2str(matrix_f_) << "=" << matrix_f_ << endl;
+
+	return true;
+}
+
+Eigen::MatrixXd MPCSlover::ComputeControlCommand()
+{
+	//std::unique_ptr<math::QpSolver>qp_solver
+	return Eigen::MatrixXd();
+}
+
+void MPCSlover::InitControlBoundaryConditions()
+{
+	// control_value
+	matrix_m1_ =  Matrix::Zero(2 * nc_*nu_, nu_*nc_); 
+	matrix_m1_.block(0, 0, nc_*nu_, nc_*nu_) = Matrix::Identity(nu_*nc_, nu_*nc_);
+	matrix_m1_.block(nc_*nu_, 0, nc_*nu_, nc_*nu_) = -1 * Matrix::Identity(nc_*nu_, nc_*nu_);
+	
+	matrix_d1_ = Matrix::Zero(2 * nc_*nu_, 1);
+	matrix_d1_.block(0, 0, nc_*nu_, 1) = matrix_ub_;
+	matrix_d1_.block(nc_*nu_, 0, nc_*nu_, 1) = -matrix_lb_;
+
+	// sum of control_value
+	Matrix temp_m1 = Matrix::Identity(nc_, nc_);
+	for (size_t row = 0; row < nc_; row++)
+	{
+		for (size_t col = 0; col < nc_; col++)
+		{
+			if (col < row)
+				temp_m1(row, col) = 1;
+		}
+	}
+	Matrix temp_m2 = kroneckerProduct(temp_m1, Matrix::Identity(nu_, nu_));
+	Matrix m2(2 * nc_*nu_, nc_*nu_);
+	m2.block(0, 0, nc_*nu_, nc_*nu_) = temp_m2;
+	m2.block(nc_*nu_, 0, nc_*nu_, nc_*nu_) = -temp_m2;
+	matrix_m2_ = m2;
+}
+
+
+Matrix kroneckerProduct(const Matrix m1, const Matrix m2) {
+	Matrix m3(m1.rows()*m2.rows(), m1.cols()*m2.cols());
+	for (int i = 0; i < m1.rows(); i++) {
+		for (int j = 0; j < m1.cols(); j++) {
+			m3.block(i*m2.rows(), j*m2.cols(), m2.rows(), m2.cols()) = m1(i, j)*m2;
+		}
+	}
+	return m3;
 }
 
 
