@@ -1,7 +1,7 @@
 #include "mpc_controller.h"
-#include"qp_solver.h"
-#include <Eigen/Sparse>
+#include "active_set_qp_solver.h"
 #include <vector>
+#include <memory>
 
 #define name2str(name) (#name)
 
@@ -98,9 +98,6 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 		matrix_r_.block(row*nu_, row*nu_, nu_, nu_) = config.r;
 	}
 
-	matrix_h_ = matrix_the_.transpose()*matrix_q_*matrix_the_ + matrix_r_;
-	matrix_f_ = 2 * (matrix_psi_*config.x0 - matrix_ref_).transpose()*matrix_q_*matrix_the_;
-
 	*(p_text_logger_) << name2str(ns_) << "=" << ns_ << endl;
 	*(p_text_logger_) << name2str(nu_) << "=" << nu_ << endl;
 	*(p_text_logger_) << name2str(ny_) << "=" << ny_ << endl;
@@ -122,8 +119,24 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 	*(p_text_logger_) << name2str(matrix_the_) << "=" << matrix_the_ << endl;
 	*(p_text_logger_) << name2str(matrix_q_) << "=" << matrix_q_ << endl;
 	*(p_text_logger_) << name2str(matrix_r_) << "=" << matrix_r_ << endl;
+
+	matrix_h_ = matrix_the_.transpose()*matrix_q_*matrix_the_ + matrix_r_;
+	matrix_f_ = 2 * (matrix_psi_*config.x0 - matrix_ref_).transpose()*matrix_q_*matrix_the_;
+
+	*(p_text_logger_) << "======create QP parameter=======" << endl;
 	*(p_text_logger_) << name2str(matrix_h_) << "=" << matrix_h_ << endl;
 	*(p_text_logger_) << name2str(matrix_f_) << "=" << matrix_f_ << endl;
+
+	Matrix mu = Matrix::Zero(2 * nu_*nc_, 1);
+	for (size_t i = 0; i < 2 * nc_; i++)
+	{
+		i< nc_ ? mu.block(i, 0, nu_, 1) = config.u0 : mu.block(i, 0, nu_, 1) = -config.u0;
+	}
+
+	if (config.rho <= 0.0)
+	{
+		NoSlackQpSlover(mu);
+	}
 
 	return true;
 }
@@ -160,6 +173,46 @@ void MPCSlover::InitControlBoundaryConditions()
 	m2.block(0, 0, nc_*nu_, nc_*nu_) = temp_m2;
 	m2.block(nc_*nu_, 0, nc_*nu_, nc_*nu_) = -temp_m2;
 	matrix_m2_ = m2;
+
+	matrix_d2_ = Matrix::Zero(2 * nc_*nu_, 1);
+	matrix_d2_.block(0, 0, nc_*nu_, 1) = matrix_s_ub_;
+	matrix_d2_.block(nc_*nu_, 0, nc_*nu_, 1) = -matrix_s_lb_;
+}
+
+
+void MPCSlover::NoSlackQpSlover( Eigen::MatrixXd mu)
+{
+	// add inequality_constrain
+	Matrix qp_c((4 * nc_ * nu_), (nc_ * nu_));
+	qp_c.block(0, 0, (2 * nc_*nu_), (nc_*nu_)) = matrix_m1_;
+	qp_c.block((2 * nc_*nu_), 0, (2 * nc_*nu_), (nc_*nu_)) = matrix_m2_;
+	
+	Matrix qp_d((4 * nc_*nu_), 1);
+	qp_d.block(0, 0, (2 * nc_*nu_), 1) = matrix_d1_;
+	qp_d.block((2 * nc_*nu_), 0, (2 * nc_*nu_), 1) = matrix_d2_ - mu;
+
+	// add equality_constrain
+	Matrix matrix_equality_constrain = Matrix::Zero(nu_*nc_, nu_*nc_);
+	Matrix matrix_equality_boundary = Matrix::Zero(nu_*nc_, 1);
+
+	std::unique_ptr<math::QpSolver> qp_solver(new math::ActiveSetQpSolver(2 * matrix_h_, matrix_f_.transpose(),
+		-qp_c, -qp_d,
+		matrix_equality_constrain, matrix_equality_boundary));
+	auto result = qp_solver->Solve();
+	if (!result) {
+		std::cout << "Linear MPC solver failed";
+		return;
+	}
+	Matrix matrix_v = Matrix::Zero(nu_ * nc_, 1);
+	matrix_v = qp_solver->params();
+	std::cout << "result is:" << std::endl << matrix_v << std::endl;
+
+	*(p_text_logger_) << name2str(mu) << "=" << mu << endl;
+	*(p_text_logger_) << name2str(qp_c) << "=" << qp_c << endl;
+	*(p_text_logger_) << name2str(qp_d) << "=" << qp_d << endl;
+	*(p_text_logger_) << name2str(matrix_equality_constrain) << "=" << matrix_equality_constrain << endl;
+	*(p_text_logger_) << name2str(matrix_equality_boundary) << "=" << matrix_equality_boundary << endl;
+	*(p_text_logger_) << name2str(matrix_v) << "=" << matrix_v << endl;
 }
 
 

@@ -52,5 +52,7 @@ protected:
 
 	void InitControlBoundaryConditions();
 
+	void NoSlackQpSlover(Eigen::MatrixXd mu);
+
 	double ts_;
 };
