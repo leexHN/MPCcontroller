@@ -37,5 +37,12 @@ int main()
 	conf.x0 = x0;
 	conf.u0 = u0;
 	slover.LoadControlConf(conf);
+	// slack test
+	Eigen::MatrixXd y_lb(1,1), y_ub(1,1);
+	y_lb << -1;
+	y_ub << 5;
+	slover.Init(np, nc, 0.1, lb, ub, s_lb, s_ub, y_lb, y_ub,20.0);
+	conf.rho = 1000;
+	slover.LoadControlConf(conf);
 	system("pause");
 }

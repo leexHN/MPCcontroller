@@ -18,6 +18,9 @@ public:
 
 	void Init(size_t np,size_t nc, double ts, Eigen::MatrixXd lb, Eigen::MatrixXd ub, Eigen::MatrixXd s_lb, Eigen::MatrixXd s_ub);
 
+	void Init(size_t np, size_t nc, double ts, Eigen::MatrixXd lb, Eigen::MatrixXd ub, Eigen::MatrixXd s_lb, Eigen::MatrixXd s_ub,
+		Eigen::MatrixXd y_lb, Eigen::MatrixXd y_ub, double slack_para);
+
 	bool LoadControlConf(ControlConf config);
 
 	Eigen::MatrixXd ComputeControlCommand();
@@ -48,11 +51,17 @@ protected:
 
 	Eigen::MatrixXd matrix_d1_, matrix_d2_;
 
-	void GetBoundaryConditions();
+	Eigen::MatrixXd matrix_y_lb_, matrix_y_ub_;
+
+	double slack_ub_,slack_rho_;
+
+	Eigen::MatrixXd GetBoundaryConditions();
 
 	void InitControlBoundaryConditions();
 
-	void NoSlackQpSlover(Eigen::MatrixXd mu);
+	Eigen::MatrixXd NoSlackQpSlover(Eigen::MatrixXd mu);
+
+	Eigen::MatrixXd SlackQpSlover(Eigen::MatrixXd mu ,Eigen::MatrixXd x0);
 
 	double ts_;
 };
