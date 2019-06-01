@@ -6,7 +6,7 @@
 struct ControlConf
 {
 	Eigen::MatrixXd matrix_a, matrix_b, matrix_c, ref, q, r, x0, u0;
-	double rho=0; //松弛因子
+	double rho=0; //松弛因子权重
 };
 
 class MPCSlover
@@ -23,7 +23,7 @@ public:
 
 	bool LoadControlConf(ControlConf config);
 
-	Eigen::MatrixXd ComputeControlCommand();
+	Eigen::MatrixXd GetControlCommand();
 
 protected:
 	
@@ -53,9 +53,9 @@ protected:
 
 	Eigen::MatrixXd matrix_y_lb_, matrix_y_ub_;
 
-	double slack_ub_,slack_rho_;
+	Eigen::MatrixXd result_;
 
-	Eigen::MatrixXd GetBoundaryConditions();
+	double slack_ub_,slack_rho_;
 
 	void InitControlBoundaryConditions();
 

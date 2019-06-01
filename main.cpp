@@ -43,6 +43,13 @@ int main()
 	y_ub << 5;
 	slover.Init(np, nc, 0.1, lb, ub, s_lb, s_ub, y_lb, y_ub,20.0);
 	conf.rho = 1000;
-	slover.LoadControlConf(conf);
+	if (slover.LoadControlConf(conf))
+	{
+		std::cout << "succeed\n"<<slover.GetControlCommand()<<std::endl;
+	}
+	else
+	{
+		std::cout << "\nfaild\n";
+	}
 	system("pause");
 }

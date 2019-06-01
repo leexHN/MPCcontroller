@@ -162,14 +162,21 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 		slack_rho_ = config.rho;
 		result = SlackQpSlover(mu, config.x0);
 	}
-
-	return true;
+	if (result.size()<=0)
+	{
+		return false;
+	}
+	else
+	{
+		result_ = result;
+		return true;
+	}	
 }
 
-Eigen::MatrixXd MPCSlover::ComputeControlCommand()
+Eigen::MatrixXd MPCSlover::GetControlCommand()
 {
 	//std::unique_ptr<math::QpSolver>qp_solver
-	return Eigen::MatrixXd();
+	return result_;
 }
 
 
