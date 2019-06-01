@@ -1,6 +1,6 @@
 #include <iostream>
 #include "text_logger.h"
-#include "mpc_controller.h"
+#include "mpc_solver.h"
 #include <stdlib.h>
 
 
@@ -49,7 +49,7 @@ int main()
 	}
 	else
 	{
-		std::cout << "\nfaild\n";
+		std::cout << "\nfailed\n";
 	}
 	system("pause");
 }

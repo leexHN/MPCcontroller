@@ -1,4 +1,4 @@
-#include "mpc_controller.h"
+#include "mpc_solver.h"
 #include "active_set_qp_solver.h"
 #include <vector>
 #include <memory>
