@@ -8,12 +8,19 @@
 text_logger::text_logger()
 {
 	file_name_ = "logger.log";
-	init();
+	//init();
 }
 
 text_logger::text_logger(std::string file_name) :file_name_(file_name) {
-	init();
+	//init();
 }
+
+text_logger::text_logger(const char* file_name)
+{
+	file_name_ = file_name;
+	//init();
+}
+
 
 text_logger::~text_logger()
 {
@@ -23,6 +30,11 @@ text_logger::~text_logger()
 void text_logger::close()
 {
 	out_.close();
+}
+
+void text_logger::operator()(const char * file_name)
+{
+	file_name_ = file_name;
 }
 
 void text_logger::init()
