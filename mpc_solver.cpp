@@ -179,6 +179,11 @@ Eigen::MatrixXd MPCSlover::GetControlCommand()
 	return result_;
 }
 
+void MPCSlover::operator()(text_logger * logger)
+{
+	p_text_logger_ = logger;
+}
+
 
 void MPCSlover::InitControlBoundaryConditions()
 {

@@ -14,6 +14,8 @@ class MPCSlover
 public:
 	MPCSlover(text_logger* logger);
 
+	MPCSlover() = default;
+
 	virtual ~MPCSlover()=default;
 
 	void Init(size_t np,size_t nc, double ts, Eigen::MatrixXd lb, Eigen::MatrixXd ub, Eigen::MatrixXd s_lb, Eigen::MatrixXd s_ub);
@@ -24,6 +26,8 @@ public:
 	bool LoadControlConf(ControlConf config);
 
 	Eigen::MatrixXd GetControlCommand();
+
+	void operator() (text_logger* logger);
 
 protected:
 	
