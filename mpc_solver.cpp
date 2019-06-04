@@ -156,11 +156,14 @@ bool MPCSlover::LoadControlConf(ControlConf config)
 	if (config.rho <= 0.0)
 	{
 		result = NoSlackQpSlover(mu);
+		*(p_text_logger_) << "optimized y" << "=" << matrix_the_ * result + matrix_psi_ * config.x0 << endl;
 	}
 	else
 	{
 		slack_rho_ = config.rho;
 		result = SlackQpSlover(mu, config.x0);
+		*(p_text_logger_) << "optimized y" << "=" << matrix_the_ * result.block(0,0,nu_*nc_,1)
+			+ matrix_psi_ * config.x0 << endl;
 	}
 	if (result.size()<=0)
 	{
