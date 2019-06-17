@@ -43,8 +43,8 @@ void text_logger::init()
 	out_.open(file_name_, ios::in);
 	if (!out_)is_exist = false;
 	out_.close();
-	out_.open(file_name_.c_str(), ios::out | ios::app);
-	//out_.open(file_name_.c_str(), ios::out);
+	//out_.open(file_name_.c_str(), ios::out | ios::app);
+	out_.open(file_name_.c_str(), ios::out);
 	if (is_exist) out_ << endl;
 	time_t now = time(0);
 	//tm *ltm = localtime(&now);

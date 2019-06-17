@@ -71,7 +71,7 @@ int main()
 	mpc_config.nc = 2;
 	mpc_config.ts = 0.1;
 	mpc_config.q =10* Eigen::MatrixXd::Identity(3,3);
-	mpc_config.r = Eigen::MatrixXd::Identity(2, 2);;
+	mpc_config.r = Eigen::MatrixXd::Identity(2, 2);
 
 	Eigen::MatrixXd ini_state(5, 1);
 	ini_state << 0, 0, 0,0.5,0;

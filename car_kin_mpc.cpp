@@ -22,13 +22,13 @@ void controller::CarKinMPC::Init(MPCConfig mpc_config)
 	size_t nu = 2, nc = mpc_config.nc;
 	Matrix lb(nu,1), ub(nu, 1), s_lb(nu, 1), s_ub(nu, 1);
 
-	lb << -max_delta_f_rate_, max_decel_;
-	ub << max_delta_f_rate_, max_acc_;
-	s_lb << -max_delta_f_, min_v_;
-	s_ub << max_delta_f_, max_v_;
+	lb << max_decel_ ,-max_delta_f_rate_;
+	ub << max_acc_, max_delta_f_rate_;
+	s_lb << min_v_, -max_delta_f_;
+	s_ub << max_v_, max_delta_f_;
 
 	mpcslover_.Init(mpc_config.np, mpc_config.nc,
-		mpc_config.ts, lb, ub, s_lb, s_ub);
+		mpc_config.ts, mpc_config.ts*lb, mpc_config.ts*ub, s_lb, s_ub);
 
 	matrix_u_ = Matrix::Zero(nu, 1);
 	matrix_del_u_ = Matrix::Zero(nu, 1);
@@ -105,8 +105,11 @@ Eigen::MatrixXd controller::CarKinMPC::ComputeControlCommand(Eigen::MatrixXd ref
 	Matrix result = mpcslover_.GetControlCommand();
 
 	matrix_del_u_ = result.block(0, 0, nu, 1);
-	matrix_u_ += matrix_del_u_;
-	
+	if (matrix_del_u_.size()<=0)
+	{
+		matrix_del_u_ = Matrix::Zero(nu, 1);
+	}
+	matrix_u_ += matrix_del_u_;	
 
 	car_kin_log_ << name2str(a2) << "=" << a2 << std::endl;
 	car_kin_log_ << name2str(b2) << "=" << b2 << std::endl;
@@ -115,7 +118,7 @@ Eigen::MatrixXd controller::CarKinMPC::ComputeControlCommand(Eigen::MatrixXd ref
 	car_kin_log_ << name2str(mpc_config_.u0) << "=" << mpc_config_.u0 << std::endl;
 	car_kin_log_ << "delta_U" << "=" << matrix_del_u_ << std::endl;
 	car_kin_log_ << name2str(matrix_u_) << "=" << matrix_u_ << std::endl;
-	return Eigen::MatrixXd();
+	return matrix_u_;
 }
 
 void controller::CarKinMPC::CalStateFunc()
